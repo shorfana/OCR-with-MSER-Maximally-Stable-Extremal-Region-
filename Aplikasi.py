@@ -21,6 +21,10 @@ from PyQt5.QtGui import QIcon, QPixmap, QImage
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QInputDialog, QApplication, QLabel, QMessageBox
 import sys
 from skimage.transform import rescale, resize
+from PIL import Image, ImageFilter
+import os
+import math 
+import csv
 
 
 class Ui_OCR(object):
@@ -160,7 +164,7 @@ class Ui_OCR(object):
 
     def grayProses(self):
         image = cv2.imread(fileName)
-        grayImage = PreproTrain.grayscale(self,image)  
+        grayImage = PreproTrain.grayscale(self,image)
 
         cv2.imwrite("pengolahan_data/Grayscale.jpg", grayImage)
         pixmap = QtGui.QPixmap("pengolahan_data/Grayscale.jpg")
@@ -182,6 +186,12 @@ class Ui_OCR(object):
     def CharCut(self):
         image = cv2.imread(fileName)
         grayImage = PreproTrain.grayscale(self,image) 
+        mserDetection = PreproTrain.cutSegment(self,grayImage) 
+
+
+    def CharCut(self):
+        image = cv2.imread(fileName)
+        grayImage = PreproTrain.grayscale(self,image) 
         mserDetection = PreproTrain.cutSegment(self,grayImage)  
 
 
@@ -199,6 +209,128 @@ class PreproTrain(QWidget):
     def grayscale(self,image):
         grayValue = 0.1140 * image[:,:,2] + 0.5870 * image[:,:,1] + 0.2989 * image[:,:,0]
         gray_img = grayValue.astype(np.uint8)
+
+        # ====================  function untuk zooning  ===================================
+        # mengambil seluru file dari folder data_segmentasi
+        fileList = []
+        myDir = "test" # lokasi folder
+        format = ".png" # ekstensi file yang diambil
+        print("Open directory = ",myDir)
+        for root, dirs, files in os.walk(myDir, topdown=False):
+            for name in files:
+                if name.endswith(format):
+                    fullName = os.path.join(root, name)
+                    fileList.append(fullName)
+
+        # kemudian lakukan perulangan sebanyak file
+        for file in fileList:
+            # membuka file gambar
+            img_file = Image.open(file)
+
+            # mendapatkan parameter gambar...
+            width, height = img_file.size
+            format = img_file.format
+            mode   = img_file.mode
+            file_name = img_file.filename
+
+            # resize image
+            im_res = img_file.resize((6, 6))
+
+            # buat image Greyscale
+            img_grey = im_res.convert('L')
+
+            # Save Greyscale values
+            # value = np.asarray(img_grey.getdata(), dtype=np.int).reshape((img_grey.size[1], img_grey.size[0]))
+            # value = np.where(value==255, 1, value)
+            # print(value)
+
+            # tresholding
+            bw = img_grey.point(lambda x: 0 if x<128 else 255,'1')
+            im_ed = bw.filter(ImageFilter.FIND_EDGES)
+
+            # Save Greyscale values
+            value = np.asarray(im_ed.getdata(), dtype=np.int).reshape((im_ed.size[1], im_ed.size[0]))
+            value = np.where(value==255, 1, value)
+            print(value)
+
+            # mencari nilai centroid
+            width, height = value.shape
+            r=0
+            xc_up = 0
+            xy_up = 0
+            tot_p = 0
+            while r < height:
+                c=0
+                while c < width:
+                    temp1 = r * value[r,c]
+                    temp2 = c * value[r,c]
+                    xc_up = xc_up + temp1
+                    xy_up = xy_up + temp2
+                    if value[r,c] == 1:
+                        tot_p = tot_p + 1
+                    c=c+1
+                r=r+1
+            # print(xc_up)
+            # print(xy_up)
+            # print(tot_p)
+            xc = xc_up / tot_p
+            xy = xy_up / tot_p
+            print ("nilai xc =", round(xc))
+            print ("nilai xy =", round(xy))
+            xc = round(xc)
+            xy = round(xy)
+
+            # menghitung zona 1
+            total_jarak_zona1 = 0
+            banyak_titik = 0
+            r=0
+            while r < 2:
+                c=0
+                while c < width:
+                    if value[r,c] == 1:
+                        total_jarak_zona1 = total_jarak_zona1 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
+                        banyak_titik = banyak_titik + 1
+                    c=c+1
+                r=r+1
+            result_zona1 = total_jarak_zona1 / banyak_titik
+            print("Zona 1 =", result_zona1)
+
+            # menghitung zona 2
+            total_jarak_zona2 = 0
+            banyak_titik = 0
+            r=2
+            while r < 4:
+                c=0
+                while c < width:
+                    if value[r,c] == 1:
+                        total_jarak_zona2 = total_jarak_zona2 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
+                        banyak_titik = banyak_titik + 1
+                    c=c+1
+                r=r+1
+            result_zona2 = total_jarak_zona2 / banyak_titik
+            print("Zona 2 =", result_zona2)
+
+            # menghitung zona 3
+            total_jarak_zona3 = 0
+            banyak_titik = 0
+            r=4
+            while r < 6:
+                c=0
+                while c < width:
+                    if value[r,c] == 1:
+                        total_jarak_zona3 = total_jarak_zona3 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
+                        banyak_titik = banyak_titik + 1
+                    c=c+1
+                r=r+1
+            result_zona3 = total_jarak_zona3 / banyak_titik
+            print("Zona 3 =", result_zona3)
+
+            result = [result_zona1, result_zona2, result_zona3, file_name]
+            print(result)
+            with open("hasil.csv", 'a') as f:
+                writer = csv.writer(f)
+                writer.writerow(result)
+        # ===================  end function untuk zooning  =========================================
         return gray_img    
 
 
@@ -261,7 +393,17 @@ class PreproTrain(QWidget):
             cv2.waitKey()    
             i = i+1
 
-     
+    # fungsi untuk mengambil seluru file dalam folder
+    # def createFileList(myDir, format='.png'):
+    #     fileList = []
+    #     print("Open directory = ",myDir)
+    #     for root, dirs, files in os.walk(myDir, topdown=False):
+    #         for name in files:
+    #             if name.endswith(format):
+    #                 fullName = os.path.join(root, name)
+    #                 fileList.append(fullName)
+    #     return fileList
+
 
 
 
