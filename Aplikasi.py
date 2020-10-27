@@ -292,7 +292,7 @@ class PreproTrain(QWidget):
 
     def cutSegment(self,grayImage):
         
-        mser = cv2.MSER_create()##0.0689
+        mser = cv2.MSER_create(_delta = txtDelta,_min_area = txtMinA ,_max_area = txtMaxA ,_max_variation = txtMaxV)##0.0689
         vis = grayImage.copy() 
         orig = grayImage.copy() 
         #detect regions in gray scale image
