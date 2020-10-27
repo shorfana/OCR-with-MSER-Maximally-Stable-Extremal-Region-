@@ -21,10 +21,15 @@ from PyQt5.QtGui import QIcon, QPixmap, QImage
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QInputDialog, QApplication, QLabel, QMessageBox
 import sys
 from skimage.transform import rescale, resize
-from PIL import Image, ImageFilter
 import os
 import math 
 import csv
+from PIL import Image, ImageFilter
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn import svm
+from sklearn.metrics import classification_report
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 
 class Ui_OCR(object):
@@ -39,6 +44,9 @@ class Ui_OCR(object):
         self.haloberanda = QtWidgets.QLabel(self.tabBeranda)
         self.haloberanda.setGeometry(QtCore.QRect(10, 20, 211, 16))
         self.haloberanda.setObjectName("haloberanda")
+        self.Nama = QtWidgets.QLabel(self.tabBeranda)
+        self.Nama.setGeometry(QtCore.QRect(40, 40, 911, 16))
+        self.Nama.setObjectName("Nama")
         self.Qore.addTab(self.tabBeranda, "")
         self.tabPengolahanData = QtWidgets.QWidget()
         self.tabPengolahanData.setObjectName("tabPengolahanData")
@@ -49,7 +57,7 @@ class Ui_OCR(object):
         self.framePengolahanData.setObjectName("framePengolahanData")
         self.groupBoxGambar = QtWidgets.QGroupBox(self.framePengolahanData)
         self.groupBoxGambar.setGeometry(QtCore.QRect(149, 40, 571, 531))
-        self.groupBoxGambar.setObjectName("groupBoxGambar")
+        self.groupBoxGambar.setObjectName("groupBoxGambar") 
         self.labelGambarPreviewPengolahanData = QtWidgets.QLabel(self.groupBoxGambar)
         self.labelGambarPreviewPengolahanData.setGeometry(QtCore.QRect(6, 49, 561, 451))
         self.labelGambarPreviewPengolahanData.setObjectName("labelGambarPreviewPengolahanData")
@@ -60,7 +68,7 @@ class Ui_OCR(object):
         self.lblPreviewGambarHasil.setGeometry(QtCore.QRect(0, 50, 561, 451))
         self.lblPreviewGambarHasil.setObjectName("lblPreviewGambarHasil")
         self.groupBoxMenu = QtWidgets.QGroupBox(self.framePengolahanData)
-        self.groupBoxMenu.setGeometry(QtCore.QRect(10, 40, 120, 191))
+        self.groupBoxMenu.setGeometry(QtCore.QRect(10, 40, 120, 231))
         self.groupBoxMenu.setObjectName("groupBoxMenu")
         self.btnPilihFilePD = QtWidgets.QPushButton(self.groupBoxMenu)
         self.btnPilihFilePD.setGeometry(QtCore.QRect(10, 30, 75, 23))
@@ -74,6 +82,9 @@ class Ui_OCR(object):
         self.btnPotong = QtWidgets.QPushButton(self.groupBoxMenu)
         self.btnPotong.setGeometry(QtCore.QRect(10, 150, 75, 23))
         self.btnPotong.setObjectName("btnPotong")
+        self.btnEkstaksi = QtWidgets.QPushButton(self.groupBoxMenu)
+        self.btnEkstaksi.setGeometry(QtCore.QRect(10, 190, 75, 23))
+        self.btnEkstaksi.setObjectName("btnEkstaksi")
         self.Qore.addTab(self.tabPengolahanData, "")
         self.tabPelatihan = QtWidgets.QWidget()
         self.tabPelatihan.setObjectName("tabPelatihan")
@@ -124,6 +135,7 @@ class Ui_OCR(object):
         _translate = QtCore.QCoreApplication.translate
         OCR.setWindowTitle(_translate("OCR", "Optical Character Recognition (MSER)"))
         self.haloberanda.setText(_translate("OCR", "Halo ini beranda"))
+        self.Nama.setText(_translate("OCR", "Nama Muhammad Iqbal Shorfana"))
         self.Qore.setTabText(self.Qore.indexOf(self.tabBeranda), _translate("OCR", "Beranda"))
         self.groupBoxGambar.setTitle(_translate("OCR", "Gambar"))
         self.labelGambarPreviewPengolahanData.setText(_translate("OCR", "Preview"))
@@ -134,6 +146,7 @@ class Ui_OCR(object):
         self.btnGrayscale.setText(_translate("OCR", "Grayscale"))
         self.btnMSER.setText(_translate("OCR", "MSER"))
         self.btnPotong.setText(_translate("OCR", "Potong"))
+        self.btnEkstaksi.setText(_translate("OCR", "Ekstraksi Fitur"))
         self.Qore.setTabText(self.Qore.indexOf(self.tabPengolahanData), _translate("OCR", "Pengolahan Data"))
         self.groupBoxPelatihan.setTitle(_translate("OCR", "Pelatihan"))
         self.btnProsesPelatihan.setText(_translate("OCR", "Proses"))
@@ -150,7 +163,11 @@ class Ui_OCR(object):
         self.btnGrayscale.clicked.connect(self.grayProses)
         self.btnMSER.clicked.connect(self.MSERProsesTrain)
         self.btnPotong.clicked.connect(self.CharCut)
+        self.btnEkstaksi.clicked.connect(self.ekstraksi)
+        self.btnProsesPelatihan.clicked.connect(self.SVMPelatihan)
 
+    def ekstraksi(self):
+        ekstraksi = PreproTrain.zoningExtraction(self)
 
     def clickFile(self):
         global fileName
@@ -164,7 +181,7 @@ class Ui_OCR(object):
 
     def grayProses(self):
         image = cv2.imread(fileName)
-        grayImage = PreproTrain.grayscale(self,image)
+        grayImage = PreproTrain.grayscale(self,image)  
 
         cv2.imwrite("pengolahan_data/Grayscale.jpg", grayImage)
         pixmap = QtGui.QPixmap("pengolahan_data/Grayscale.jpg")
@@ -186,34 +203,141 @@ class Ui_OCR(object):
     def CharCut(self):
         image = cv2.imread(fileName)
         grayImage = PreproTrain.grayscale(self,image) 
-        mserDetection = PreproTrain.cutSegment(self,grayImage) 
-
-
-    def CharCut(self):
-        image = cv2.imread(fileName)
-        grayImage = PreproTrain.grayscale(self,image) 
         mserDetection = PreproTrain.cutSegment(self,grayImage)  
+
+    def SVMPelatihan(self):
+        global namaFile
+        namaFile, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Select Image", "", "CSV File (*.csv )")
+        if namaFile:
+            pelatihan = SVMTrain.trainData(self,namaFile)
+
 
 
 class PreproTrain(QWidget):
     def __init__(self,parent=None):
         super(PreproTrain, self).__init__(parent)
 
-        self.textDelta = QLineEdit(self)
-        self.textDelta.move(100,22)
-        self.textDelta.setPlaceholderText("Masukan Nilai Delta")
-
-        self.setGeometry(300,300,290,140)
-        self.setWindowTitle("Input Inisialisasi")
-
     def grayscale(self,image):
         grayValue = 0.1140 * image[:,:,2] + 0.5870 * image[:,:,1] + 0.2989 * image[:,:,0]
         gray_img = grayValue.astype(np.uint8)
+        return gray_img    
 
+    def non_max_suppression_fast(boxes, overlapThresh):
+        # Empty array detection
+        if len(boxes) == 0:
+            return []
+
+            # Convert the type to float
+        if boxes.dtype.kind == "i":
+            boxes = boxes.astype("float")
+
+        pick = []
+
+        # Four coordinate arrays
+        x1 = boxes[:, 0]
+        y1 = boxes[:, 1]
+        x2 = boxes[:, 2]
+        y2 = boxes[:, 3]
+
+        area = (x2 - x1 + 1) * (y2 - y1 + 1)  # Calculate area array
+        idxs = np.argsort(y2)  # Returns the index value of the lower right corner coordinate from small to large
+
+        # Start traversing to delete duplicate boxes
+        while len(idxs) > 0:
+            # Put the bottom right box into the pick array
+            last = len(idxs) - 1
+            i = idxs[last]
+            pick.append(i)
+
+            # Find the largest coordinate x1y1 and the smallest coordinate x2y2 in the remaining boxes,
+            xx1 = np.maximum(x1[i], x1[idxs[:last]])
+            yy1 = np.maximum(y1[i], y1[idxs[:last]])
+            xx2 = np.minimum(x2[i], x2[idxs[:last]])
+            yy2 = np.minimum(y2[i], y2[idxs[:last]])
+
+            # Calculate the proportion of overlapping area in the corresponding frame
+            w = np.maximum(0, xx2 - xx1 + 1)
+            h = np.maximum(0, yy2 - yy1 + 1)
+            overlap = (w * h) / area[idxs[:last]]
+
+            # If the proportion is greater than the threshold, delete
+            idxs = np.delete(idxs, np.concatenate(([last], np.where(overlap > overlapThresh)[0])))
+
+        return boxes[pick].astype("int")
+
+    def mserTextDetection(self,grayImage):
+        global txtDelta, txtMinA, txtMaxA, txtMaxV
+        delta, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Delta')
+        MinArea, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Min Aera')
+        MaxArea, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Max Area')
+        MaxVariation, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Max Variation')
+        txtDelta = int(delta)
+        txtMinA = int(MinArea)
+        txtMaxA = int(MaxArea)
+        txtMaxV = float(MaxVariation)
+        mser = cv2.MSER_create(_delta = txtDelta,_min_area = txtMinA ,_max_area = txtMaxA ,_max_variation = txtMaxV)##0.0689
+        vis = grayImage.copy() 
+        orig = grayImage.copy()   
+        #detect regions in grayscale image
+        regions, _ = mser.detectRegions(grayImage)
+        hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions]
+        mask = np.zeros((grayImage.shape[0], grayImage.shape[1], 1), dtype=np.uint8)
+        keep = []
+        for contour in hulls:
+            x,y,w,h = cv2.boundingRect(contour)
+            cv2.drawContours(mask, [contour], -1, (255, 255, 255), -1)
+        segmen_result_textonly = cv2.bitwise_and(grayImage, grayImage, mask=mask)
+
+        return segmen_result_textonly 
+
+    def cutSegment(self,grayImage):
+        
+        mser = cv2.MSER_create()##0.0689
+        vis = grayImage.copy() 
+        orig = grayImage.copy() 
+        #detect regions in gray scale image
+        regions, _ = mser.detectRegions(grayImage)
+        hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions]
+        mask = np.zeros((grayImage.shape[0], grayImage.shape[1], 1), dtype=np.uint8)
+        
+        keep = []
+        for contour in hulls:
+            x,y,w,h = cv2.boundingRect(contour)
+            keep.append([x, y, x + w, y + h])
+            cv2.rectangle(vis, (x, y), (x + w, y + h), (255, 255, 0), 1)
+
+        # Filter for non-repeated rectangular boxes
+        keep2 = np.array(keep)
+        pick = PreproTrain.non_max_suppression_fast(keep2, 0.5)   
+        iterasi = 0
+        for (startX, startY, endX, endY) in pick:
+            thres1 = orig[startY:endY,startX:endX]
+            i, j = np.shape(thres1)
+            for a in range(i):
+                for b in range(j):
+                    if (thres1[a][b] > 165):
+                        thres1[a][b] = 0
+                    else:
+                        thres1[a][b] = 255
+            size = (100,100)            
+            thres2 = cv2.resize(thres1,size)              
+            # cv2.imshow('data segmentasi', thres2)
+            # text, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada karakter yang sudah dipotong')
+            cv2.imwrite('data_segmentasi/{}.png'.format(iterasi), thres2)
+            cv2.rectangle(orig, (startX, startY), (endX, endY), (255, 185, 120), 2) 
+            iterasi = iterasi + 1
+        self.msgBox = QMessageBox()
+        self.msgBox.setIcon(QMessageBox.Question)
+        self.msgBox.setText("Proses Pemotongan Karakter Selesai")
+        self.msgBox.setWindowTitle("Pesan")
+        self.msgBox.setStandardButtons(QMessageBox.Ok)
+        self.msgBox.exec()   
+
+    def zoningExtraction(self):
         # ====================  function untuk zooning  ===================================
         # mengambil seluru file dari folder data_segmentasi
         fileList = []
-        myDir = "test" # lokasi folder
+        myDir = "data_segmentasi" # lokasi folder
         format = ".png" # ekstensi file yang diambil
         print("Open directory = ",myDir)
         for root, dirs, files in os.walk(myDir, topdown=False):
@@ -226,32 +350,27 @@ class PreproTrain(QWidget):
         for file in fileList:
             # membuka file gambar
             img_file = Image.open(file)
+            gambar = cv2.imread(file)
 
             # mendapatkan parameter gambar...
             width, height = img_file.size
             format = img_file.format
             mode   = img_file.mode
-            file_name = img_file.filename
+            file_name = img_file.filename             
 
-            # resize image
-            im_res = img_file.resize((6, 6))
-
-            # buat image Greyscale
-            img_grey = im_res.convert('L')
-
-            # Save Greyscale values
-            # value = np.asarray(img_grey.getdata(), dtype=np.int).reshape((img_grey.size[1], img_grey.size[0]))
-            # value = np.where(value==255, 1, value)
-            # print(value)
-
-            # tresholding
-            bw = img_grey.point(lambda x: 0 if x<128 else 255,'1')
-            im_ed = bw.filter(ImageFilter.FIND_EDGES)
-
-            # Save Greyscale values
-            value = np.asarray(im_ed.getdata(), dtype=np.int).reshape((im_ed.size[1], im_ed.size[0]))
-            value = np.where(value==255, 1, value)
-            print(value)
+            thresholding = PreproTrain.grayscale(self,gambar)
+            h,w = np.shape(thresholding)
+            #alur threshold
+            for x in range(h):
+                for y in range(w):
+                    if (thresholding[x][y] > 165):
+                        thresholding[x][y] = 1
+                    else:
+                        thresholding[x][y] = 0 
+            size = (21,21)            
+            value = cv2.resize(thresholding,size)               
+            np.savetxt('matriks global thres.txt',np.array(value),fmt="%s")  
+            # cv2.imwrite('gambar.jpg', value2)         
 
             # mencari nilai centroid
             width, height = value.shape
@@ -284,7 +403,7 @@ class PreproTrain(QWidget):
             total_jarak_zona1 = 0
             banyak_titik = 0
             r=0
-            while r < 2:
+            while r < 6:
                 c=0
                 while c < width:
                     if value[r,c] == 1:
@@ -293,13 +412,14 @@ class PreproTrain(QWidget):
                     c=c+1
                 r=r+1
             result_zona1 = total_jarak_zona1 / banyak_titik
+            print(total_jarak_zona1, banyak_titik)
             print("Zona 1 =", result_zona1)
 
             # menghitung zona 2
             total_jarak_zona2 = 0
             banyak_titik = 0
-            r=2
-            while r < 4:
+            r=6
+            while r < 13:
                 c=0
                 while c < width:
                     if value[r,c] == 1:
@@ -308,13 +428,14 @@ class PreproTrain(QWidget):
                     c=c+1
                 r=r+1
             result_zona2 = total_jarak_zona2 / banyak_titik
+            print(total_jarak_zona2, banyak_titik)
             print("Zona 2 =", result_zona2)
 
             # menghitung zona 3
             total_jarak_zona3 = 0
             banyak_titik = 0
-            r=4
-            while r < 6:
+            r=13
+            while r < 20:
                 c=0
                 while c < width:
                     if value[r,c] == 1:
@@ -323,87 +444,81 @@ class PreproTrain(QWidget):
                     c=c+1
                 r=r+1
             result_zona3 = total_jarak_zona3 / banyak_titik
+            print(total_jarak_zona3, banyak_titik)
             print("Zona 3 =", result_zona3)
 
-            result = [result_zona1, result_zona2, result_zona3, file_name]
+            cv2.imshow('Karakter yang akan diekstraksi',gambar)
+            # cv2.imwrite('gambar.jpg', value3)   
+            label, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada data ekstraksi')
+            result = [result_zona1, result_zona2, result_zona3, label]
             print(result)
-            with open("hasil.csv", 'a') as f:
+            with open("hasil ekstraksi.csv", 'a') as f:
                 writer = csv.writer(f)
                 writer.writerow(result)
-        # ===================  end function untuk zooning  =========================================
-        return gray_img    
+        # ===================  end function untuk zooning  =========================================        
 
 
-    def mserTextDetection(self,grayImage):
-        global txtDelta, txtMinA, txtMaxA, txtMaxV
-        delta, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Delta')
-        MinArea, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Min Aera')
-        MaxArea, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Max Area')
-        MaxVariation, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Max Variation')
-        txtDelta = int(delta)
-        txtMinA = int(MinArea)
-        txtMaxA = int(MaxArea)
-        txtMaxV = float(MaxVariation)
-        mser = cv2.MSER_create(_delta = txtDelta,_min_area = txtMinA ,_max_area = txtMaxA ,_max_variation = txtMaxV)##0.0689
-        #detect regions in gray scale image
-        # vis = grayImage.copy()    
-        regions, _ = mser.detectRegions(grayImage)
-        hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions]
-        mask = np.zeros((grayImage.shape[0], grayImage.shape[1], 1), dtype=np.uint8)
-        # nmss = nms(regions,hulls )
-        # i=0 
-        # keep = []
-        for contour in hulls:
-            x,y,w,h = cv2.boundingRect(contour)
-            # cv2.rectangle(vis, (x, y), (x + w, y + h), (255, 255, 255), 1)
-            # cv2.imwrite('data_segmentasi/{}.png'.format(i), grayImage[y:y+h,x:x+w])
-            #     i = i+1
-            cv2.drawContours(mask, [contour], -1, (255, 255, 255), -1)
-        segmen_result_textonly = cv2.bitwise_and(grayImage, grayImage, mask=mask)
+class SVMTrain(QWidget):
+    def __init__(self,parent=None):
+        super(SVMTrain, self).__init__(parent)
 
-        # cv2.imshow("hulls", vis)
-        return segmen_result_textonly 
 
-    def cutSegment(self,grayImage):
-        
-        mser = cv2.MSER_create(_delta = txtDelta,_min_area = txtMinA ,_max_area = txtMaxA ,_max_variation = txtMaxV)##0.0689
-        #detect regions in gray scale image
-        regions, _ = mser.detectRegions(grayImage)
-        hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions]
-        mask = np.zeros((grayImage.shape[0], grayImage.shape[1], 1), dtype=np.uint8)
-        # nmss = nms(regions,hulls )
-        i=0 
-        # keep = []
-        for contour in hulls:
-            x,y,w,h = cv2.boundingRect(contour)
-            # cv2.rectangle(vis, (x, y), (x + w, y + h), (255, 255, 255), 1)
-            # cv2.imwrite('data_segmentasi/{}.png'.format(i), grayImage[y:y+h,x:x+w])
-            # thresholding = grayImage[y:y+h,x:x+w]
-            # h,w = np.shape(thresholding)
-            # #alur threshold
-            # for x in range(h):
-            #     for y in range(w):
-            #         if (thresholding[x][y] > 195):
-            #             thresholding[x][y] = 0
-            #         else:
-            #             thresholding[x][y] = 255 
-            cv2.imshow('data segmentasi', grayImage[y:y+h,x:x+w] )
-            text, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada karakter yang sudah dipotong')
-            cv2.imwrite('data_segmentasi/{}.png'.format(text), grayImage[y:y+h,x:x+w])
-            cv2.waitKey()    
-            i = i+1
+    def trainData(self,data):
+        global SVM_clf, sc
 
-    # fungsi untuk mengambil seluru file dalam folder
-    # def createFileList(myDir, format='.png'):
-    #     fileList = []
-    #     print("Open directory = ",myDir)
-    #     for root, dirs, files in os.walk(myDir, topdown=False):
-    #         for name in files:
-    #             if name.endswith(format):
-    #                 fullName = os.path.join(root, name)
-    #                 fileList.append(fullName)
-    #     return fileList
+        # Baca data
+        datacsv = pd.read_csv(data)
+        dataraw = np.array(datacsv)
 
+        # Pilih data x dan y
+        data_x = dataraw[:, 0:3]
+        data_y = dataraw[:, 3]
+
+        # Normalisasi data menggunakan MinMax
+        sc = MinMaxScaler()
+        data_x = sc.fit_transform(data_x)
+
+        #Lakukan pemilihan data train dan test
+        x_train,x_test, y_train, y_test  = train_test_split(data_x, data_y, test_size=0.5, random_state=10)
+        print("X train",x_train)
+        print("X test",x_test)
+        print("Y train",y_train)
+        print("Y test",y_test)
+
+        # Model SVM
+        svm_clf = svm.SVC(C=1.0, kernel='rbf', probability=True, tol=0.0001, max_iter=100, degree=5)
+
+        # pelatihan
+        svm_clf.fit(x_train, y_train)
+
+        self.msgBox = QMessageBox()
+        self.msgBox.setIcon(QMessageBox.Question)
+        self.msgBox.setText("Pelatihan SVM selesai")
+        self.msgBox.setWindowTitle("Pesan")
+        self.msgBox.setStandardButtons(QMessageBox.Ok)
+        self.msgBox.exec()  
+
+class SVMTest(QWidget):
+    def __init__(self,parent=None):
+        super(SVMTrain, self).__init__(parent)
+
+    def testData(self,data):
+        global svm_clf, sc
+
+        data = sc.transform(data)
+        hasil = svm_clf.predict(data)    
+
+
+class PreproTest(QWidget):
+    def __init__(self,parent=None):
+        super(PreproTest, self).__init__(parent)
+
+    def grayscale(self,image):
+        grayValue = 0.1140 * image[:,:,2] + 0.5870 * image[:,:,1] + 0.2989 * image[:,:,0]
+        gray_img = grayValue.astype(np.uint8)
+        return gray_img 
+
+     
 
 
 
@@ -415,22 +530,4 @@ if __name__ == "__main__":
     ui.setupUi(Dialog)
     Dialog.show()
     sys.exit(app.exec_())
-
-
-
- # def pengolahanData(self):
-    #     image = cv2.imread(fileName)
-    #     grayImage = PreproTrain.grayscale(self,image)
-    #     mserDetection = PreproTrain.mserTextDetection( self,grayImage)  
-
-    #     cv2.imwrite("pengolahan_data/Grayscale.jpg", grayImage)
-    #     pixmap = QtGui.QPixmap("pengolahan_data/Grayscale.jpg")
-    #     pixmap = pixmap.scaled(self.lblHasilGrayscale.width(), self.lblHasilGrayscale.height(), QtCore.Qt.KeepAspectRatio)
-    #     self.lblHasilGrayscale.setPixmap(pixmap)
-    #     self.lblHasilGrayscale.setAlignment(QtCore.Qt.AlignCenter)
-
-    #     cv2.imwrite("pengolahan_data/mserdetect.jpg", mserDetection)
-    #     pixmap = QtGui.QPixmap("pengolahan_data/mserdetect.jpg")
-    #     pixmap = pixmap.scaled(self.lblHasilMSER.width(), self.lblHasilMSER.height(), QtCore.Qt.KeepAspectRatio)
-    #     self.lblHasilMSER.setPixmap(pixmap)
-    #     self.lblHasilMSER.setAlignment(QtCore.Qt.AlignCenter)     
+ 
