@@ -24,7 +24,7 @@ from skimage.transform import rescale, resize
 import os
 import math 
 import csv
-from PIL import Image, ImageFilter
+# from PIL import Image, ImageFilter
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn import svm
@@ -166,13 +166,16 @@ class Ui_OCR(object):
         self.btnEkstaksi.clicked.connect(self.ekstraksi)
         self.btnProsesPelatihan.clicked.connect(self.SVMPelatihan)
 
-    def ekstraksi(self):
-        ekstraksi = PreproTrain.zoningExtraction(self)
+    
 
     def clickFile(self):
-        global fileName
+        global fileName, fileNama
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Select Image", "", "Image File (*.png *.jpg *.jpeg)")
         if fileName:
+            base = os.path.basename(fileName)
+            split = os.path.splitext(base)
+            fileNama = os.path.splitext(base)[0]
+            print(fileNama)
             self.labelGambarPreviewPengolahanData.setText(fileName)
             pixmap = QtGui.QPixmap(fileName)
             pixmap = pixmap.scaled(self.labelGambarPreviewPengolahanData.width(), self.labelGambarPreviewPengolahanData.height(), QtCore.Qt.KeepAspectRatio)
@@ -203,11 +206,14 @@ class Ui_OCR(object):
     def CharCut(self):
         image = cv2.imread(fileName)
         grayImage = PreproTrain.grayscale(self,image) 
-        mserDetection = PreproTrain.cutSegment(self,grayImage)  
+        mserDetection = PreproTrain.cutSegment(self,grayImage,fileNama)  
+
+    def ekstraksi(self):
+        ekstraksi = PreproTrain.zoningExtraction(self,fileNama)    
 
     def SVMPelatihan(self):
         global namaFile
-        namaFile, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Select Image", "", "CSV File (*.csv )")
+        namaFile, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Select File", "", "CSV File (*.csv )")
         if namaFile:
             pelatihan = SVMTrain.trainData(self,namaFile)
 
@@ -290,8 +296,11 @@ class PreproTrain(QWidget):
 
         return segmen_result_textonly 
 
-    def cutSegment(self,grayImage):
-        
+    def cutSegment(self,grayImage,fileNama):
+        # dir = QFileDialog.getExistingDirectory(self, tr("Open Directory"),"/home", QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks)
+        # print(dir)
+        path = 'data_segmentasi/{}'.format(fileNama)
+        os.makedirs(path)
         mser = cv2.MSER_create(_delta = txtDelta,_min_area = txtMinA ,_max_area = txtMaxA ,_max_variation = txtMaxV)##0.0689
         vis = grayImage.copy() 
         orig = grayImage.copy() 
@@ -323,7 +332,7 @@ class PreproTrain(QWidget):
             thres2 = cv2.resize(thres1,size)              
             # cv2.imshow('data segmentasi', thres2)
             # text, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada karakter yang sudah dipotong')
-            cv2.imwrite('data_segmentasi/{}.png'.format(iterasi), thres2)
+            cv2.imwrite('data_segmentasi/{}/{}.png'.format(fileNama,iterasi), thres2)
             cv2.rectangle(orig, (startX, startY), (endX, endY), (255, 185, 120), 2) 
             iterasi = iterasi + 1
         self.msgBox = QMessageBox()
@@ -333,11 +342,11 @@ class PreproTrain(QWidget):
         self.msgBox.setStandardButtons(QMessageBox.Ok)
         self.msgBox.exec()   
 
-    def zoningExtraction(self):
+    def zoningExtraction(self,fileNama):
         # ====================  function untuk zooning  ===================================
-        # mengambil seluru file dari folder data_segmentasi
+        # mengambil seluru file dari folder data_segmentasi dan folder font yang dituju
         fileList = []
-        myDir = "data_segmentasi" # lokasi folder
+        myDir = "data_segmentasi/{}".format(fileNama) # lokasi folder
         format = ".png" # ekstensi file yang diambil
         print("Open directory = ",myDir)
         for root, dirs, files in os.walk(myDir, topdown=False):
@@ -349,14 +358,14 @@ class PreproTrain(QWidget):
         # kemudian lakukan perulangan sebanyak file
         for file in fileList:
             # membuka file gambar
-            img_file = Image.open(file)
+            # img_file = Image.open(file)
             gambar = cv2.imread(file)
 
             # mendapatkan parameter gambar...
-            width, height = img_file.size
-            format = img_file.format
-            mode   = img_file.mode
-            file_name = img_file.filename             
+            # width, height = img_file.size
+            # format = img_file.format
+            # mode   = img_file.mode
+            # file_name = img_file.filename             
 
             thresholding = PreproTrain.grayscale(self,gambar)
             h,w = np.shape(thresholding)
@@ -451,10 +460,18 @@ class PreproTrain(QWidget):
             # cv2.imwrite('gambar.jpg', value3)   
             label, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada data ekstraksi')
             result = [result_zona1, result_zona2, result_zona3, label]
-            print(result)
+            # print(result)
             with open("hasil ekstraksi.csv", 'a') as f:
                 writer = csv.writer(f)
                 writer.writerow(result)
+
+        self.msgBox = QMessageBox()
+        self.msgBox.setIcon(QMessageBox.Question)
+        self.msgBox.setText("Proses Ekstraksi dan Pelabelan Selesai")
+        self.msgBox.setWindowTitle("Pesan")
+        self.msgBox.setStandardButtons(QMessageBox.Ok)
+        self.msgBox.exec()  
+        cv2.destroyAllWindows()   
         # ===================  end function untuk zooning  =========================================        
 
 
@@ -475,21 +492,23 @@ class SVMTrain(QWidget):
         data_y = dataraw[:, 3]
 
         # Normalisasi data menggunakan MinMax
-        sc = MinMaxScaler()
-        data_x = sc.fit_transform(data_x)
+        # sc = MinMaxScaler()
+        # data_x = sc.fit_transform(data_x)
 
         #Lakukan pemilihan data train dan test
-        x_train,x_test, y_train, y_test  = train_test_split(data_x, data_y, test_size=0.5, random_state=10)
-        print("X train",x_train)
-        print("X test",x_test)
-        print("Y train",y_train)
-        print("Y test",y_test)
+        # x_train,x_test, y_train, y_test  = train_test_split(data_x, data_y, test_size=0.5, random_state=10)
+        # print("X train",x_train)
+        # print("X test",x_test)
+        # print("Y train",y_train)
+        # print("Y test",y_test)
 
         # Model SVM
-        svm_clf = svm.SVC(C=1.0, kernel='rbf', probability=True, tol=0.0001, max_iter=100, degree=5)
+        svm_clf = svm.SVC(kernel='rbf')
 
         # pelatihan
-        svm_clf.fit(x_train, y_train)
+        svm_clf.fit(data_x, data_y)
+        print("X train",data_x)
+        print("Y train",data_y)
 
         self.msgBox = QMessageBox()
         self.msgBox.setIcon(QMessageBox.Question)
@@ -519,9 +538,6 @@ class PreproTest(QWidget):
         return gray_img 
 
      
-
-
-
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
