@@ -165,6 +165,8 @@ class Ui_OCR(object):
         self.btnPotong.clicked.connect(self.CharCut)
         self.btnEkstaksi.clicked.connect(self.ekstraksi)
         self.btnProsesPelatihan.clicked.connect(self.SVMPelatihan)
+        self.btnPilihFileUji.clicked.connect(self.SVMClicked)
+        self.btnProsesUji.clicked.connect(self.SVMPengujian)
 
     
 
@@ -216,6 +218,22 @@ class Ui_OCR(object):
         namaFile, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Select File", "", "CSV File (*.csv )")
         if namaFile:
             pelatihan = SVMTrain.trainData(self,namaFile)
+
+    def SVMClicked(self):
+        global filePengujian
+        filePengujian, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Select Image", "", "Image File (*.png *.jpg *.jpeg)")
+        if filePengujian:
+            self.lblPreviewGambarUji.setText(filePengujian)
+            pixmap = QtGui.QPixmap(filePengujian)
+            pixmap = pixmap.scaled(self.lblPreviewGambarUji.width(), self.lblPreviewGambarUji.height(), QtCore.Qt.KeepAspectRatio)
+            self.lblPreviewGambarUji.setPixmap(pixmap)
+            self.lblPreviewGambarUji.setAlignment(QtCore.Qt.AlignCenter)   
+
+    def SVMPengujian(self):
+        image = cv2.imread(filePengujian)
+        grayImage = PreproTest.grayscale(self,image)   
+        mserDetection = PreproTest.MSERProsesTest(self, grayImage)
+
 
 
 
@@ -481,7 +499,7 @@ class SVMTrain(QWidget):
 
 
     def trainData(self,data):
-        global SVM_clf, sc
+        global svm_clf, sc, data_x, data_y
 
         # Baca data
         datacsv = pd.read_csv(data)
@@ -492,8 +510,8 @@ class SVMTrain(QWidget):
         data_y = dataraw[:, 3]
 
         # Normalisasi data menggunakan MinMax
-        # sc = MinMaxScaler()
-        # data_x = sc.fit_transform(data_x)
+        sc = MinMaxScaler()
+        data_x = sc.fit_transform(data_x)
 
         #Lakukan pemilihan data train dan test
         # x_train,x_test, y_train, y_test  = train_test_split(data_x, data_y, test_size=0.5, random_state=10)
@@ -517,15 +535,17 @@ class SVMTrain(QWidget):
         self.msgBox.setStandardButtons(QMessageBox.Ok)
         self.msgBox.exec()  
 
-class SVMTest(QWidget):
-    def __init__(self,parent=None):
-        super(SVMTrain, self).__init__(parent)
-
     def testData(self,data):
-        global svm_clf, sc
+        # global svm_clf, sc
+        
+        data =  sc.transform(data)
+        hasil = svm_clf.predict(data) 
+        print('data normalisasi ',data)  
 
-        data = sc.transform(data)
-        hasil = svm_clf.predict(data)    
+        kelas = hasil[0]
+        print(kelas)
+        return kelas     
+        
 
 
 class PreproTest(QWidget):
@@ -536,6 +556,164 @@ class PreproTest(QWidget):
         grayValue = 0.1140 * image[:,:,2] + 0.5870 * image[:,:,1] + 0.2989 * image[:,:,0]
         gray_img = grayValue.astype(np.uint8)
         return gray_img 
+
+    def zoningTest(self,value):
+        width, height = value.shape
+        r=0
+        xc_up = 0
+        xy_up = 0
+        tot_p = 0
+        while r < height:
+            c=0
+            while c < width:
+                temp1 = r * value[r,c]
+                temp2 = c * value[r,c]
+                xc_up = xc_up + temp1
+                xy_up = xy_up + temp2
+                if value[r,c] == 1:
+                    tot_p = tot_p + 1
+                c=c+1
+            r=r+1
+        # print(xc_up)
+        # print(xy_up)
+        # print(tot_p)
+        xc = xc_up / tot_p
+        xy = xy_up / tot_p
+        print ("nilai xc =", round(xc))
+        print ("nilai xy =", round(xy))
+        xc = round(xc)
+        xy = round(xy)
+
+        # menghitung zona 1
+        total_jarak_zona1 = 0
+        banyak_titik = 0
+        r=0
+        while r < 6:
+            c=0
+            while c < width:
+                if value[r,c] == 1:
+                    total_jarak_zona1 = total_jarak_zona1 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
+                    banyak_titik = banyak_titik + 1
+                c=c+1
+            r=r+1
+        result_zona1 = total_jarak_zona1 / banyak_titik
+        print(total_jarak_zona1, banyak_titik)
+        print("Zona 1 =", result_zona1)
+
+        # menghitung zona 2
+        total_jarak_zona2 = 0
+        banyak_titik = 0
+        r=6
+        while r < 13:
+            c=0
+            while c < width:
+                if value[r,c] == 1:
+                    total_jarak_zona2 = total_jarak_zona2 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
+                    banyak_titik = banyak_titik + 1
+                c=c+1
+            r=r+1
+        result_zona2 = total_jarak_zona2 / banyak_titik
+        print(total_jarak_zona2, banyak_titik)
+        print("Zona 2 =", result_zona2)
+
+        # menghitung zona 3
+        total_jarak_zona3 = 0
+        banyak_titik = 0
+        r=13
+        while r < 20:
+            c=0
+            while c < width:
+                if value[r,c] == 1:
+                    total_jarak_zona3 = total_jarak_zona3 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
+                    banyak_titik = banyak_titik + 1
+                c=c+1
+            r=r+1
+        result_zona3 = total_jarak_zona3 / banyak_titik
+        print(total_jarak_zona3, banyak_titik)
+        print("Zona 3 =", result_zona3)
+
+        # cv2.imshow('Karakter yang akan diekstraksi',gambar)
+        # # cv2.imwrite('gambar.jpg', value3)   
+        # label, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada data ekstraksi')
+        result = [[result_zona1, result_zona2, result_zona3]]
+        # print(result)
+        # with open("hasil ekstraksi.csv", 'a') as f:
+        #     writer = csv.writer(f)
+        #     writer.writerow(result)
+        return result  
+
+    def MSERProsesTest(self,grayImage):
+        global txtDelta, txtMinA, txtMaxA, txtMaxV
+        delta, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Delta')
+        MinArea, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Min Aera')
+        MaxArea, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Max Area')
+        MaxVariation, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Max Variation')
+        txtDelta = int(delta)
+        txtMinA = int(MinArea)
+        txtMaxA = int(MaxArea)
+        txtMaxV = float(MaxVariation)
+        mser = cv2.MSER_create(_delta = txtDelta,_min_area = txtMinA ,_max_area = txtMaxA ,_max_variation = txtMaxV)##0.0689
+        vis = grayImage.copy() 
+        orig = grayImage.copy() 
+        #detect regions in gray scale image
+        regions, _ = mser.detectRegions(grayImage)
+        hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions]
+        mask = np.zeros((grayImage.shape[0], grayImage.shape[1], 1), dtype=np.uint8)
+        
+        keep = []
+        for contour in hulls:
+            x,y,w,h = cv2.boundingRect(contour)
+            keep.append([x, y, x + w, y + h])
+            cv2.rectangle(vis, (x, y), (x + w, y + h), (255, 255, 0), 1)  
+
+        # Filter for non-repeated rectangular boxes
+        keep2 = np.array(keep)
+        pick = PreproTrain.non_max_suppression_fast(keep2, 0.5)   
+        iterasi = 0
+        for (startX, startY, endX, endY) in pick:
+            thres1 = orig[startY:endY,startX:endX]
+            i, j = np.shape(thres1)
+            for a in range(i):
+                for b in range(j):
+                    if (thres1[a][b] > 165):
+                        thres1[a][b] = 0
+                    else:
+                        thres1[a][b] = 1
+            size = (21,21)            
+            value = cv2.resize(thres1,size)  
+            data = PreproTest.zoningTest(self,value) 
+            # print("Ini data pertama",data)
+            # data1 = data.reshape(-1,1)
+            # print(data)
+            klasifikasi = SVMTrain.testData(self,data)         
+            # cv2.imshow('data segmentasi', thres2)
+            # text, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada karakter yang sudah dipotong')
+            # cv2.imwrite('data_segmentasi/{}/{}.png'.format(fileNama,iterasi), thres2)
+            cv2.rectangle(orig, (startX, startY), (endX, endY), (255, 185, 120), 2) 
+            iterasi = iterasi + 1
+            with open("hasil klasifikasi.csv", 'a') as f:
+                writer = csv.writer(f)
+                writer.writerow(klasifikasi)
+        self.msgBox = QMessageBox()
+        self.msgBox.setIcon(QMessageBox.Question)
+        self.msgBox.setText("Klasifikasi selesai")
+        self.msgBox.setWindowTitle("Pesan")
+        self.msgBox.setStandardButtons(QMessageBox.Ok)
+        self.msgBox.exec()   
+
+# class SVMTest(QWidget):
+#     def __init__(self,parent=None):
+#         super(SVMTrain, self).__init__(parent)
+
+#     def testData(self,data):
+#         global svm_clf, sc
+
+#         data =  sc.transform(data)
+#         hasil = svm_clf.predict(data)   
+
+#         kelas = hasil[0]
+
+#         return kelas         
 
      
 if __name__ == "__main__":
