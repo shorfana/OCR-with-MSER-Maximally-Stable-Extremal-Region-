@@ -36,17 +36,26 @@ class Ui_OCR(object):
     def setupUi(self, OCR):
         OCR.setObjectName("OCR")
         OCR.resize(1360, 695)
+        font = QtGui.QFont()
+        font.setPointSize(8)
+        OCR.setFont(font)
         self.Qore = QtWidgets.QTabWidget(OCR)
         self.Qore.setGeometry(QtCore.QRect(0, 0, 1361, 691))
         self.Qore.setObjectName("Qore")
         self.tabBeranda = QtWidgets.QWidget()
         self.tabBeranda.setObjectName("tabBeranda")
         self.haloberanda = QtWidgets.QLabel(self.tabBeranda)
-        self.haloberanda.setGeometry(QtCore.QRect(10, 20, 211, 16))
+        self.haloberanda.setGeometry(QtCore.QRect(10, 20, 1341, 16))
+        self.haloberanda.setAlignment(QtCore.Qt.AlignCenter)
         self.haloberanda.setObjectName("haloberanda")
         self.Nama = QtWidgets.QLabel(self.tabBeranda)
-        self.Nama.setGeometry(QtCore.QRect(40, 40, 911, 16))
+        self.Nama.setGeometry(QtCore.QRect(10, 40, 1341, 16))
+        self.Nama.setAlignment(QtCore.Qt.AlignCenter)
         self.Nama.setObjectName("Nama")
+        self.NIM = QtWidgets.QLabel(self.tabBeranda)
+        self.NIM.setGeometry(QtCore.QRect(10, 60, 1341, 16))
+        self.NIM.setAlignment(QtCore.Qt.AlignCenter)
+        self.NIM.setObjectName("NIM")
         self.Qore.addTab(self.tabBeranda, "")
         self.tabPengolahanData = QtWidgets.QWidget()
         self.tabPengolahanData.setObjectName("tabPengolahanData")
@@ -60,12 +69,14 @@ class Ui_OCR(object):
         self.groupBoxGambar.setObjectName("groupBoxGambar") 
         self.labelGambarPreviewPengolahanData = QtWidgets.QLabel(self.groupBoxGambar)
         self.labelGambarPreviewPengolahanData.setGeometry(QtCore.QRect(6, 49, 561, 451))
+        self.labelGambarPreviewPengolahanData.setAlignment(QtCore.Qt.AlignCenter)
         self.labelGambarPreviewPengolahanData.setObjectName("labelGambarPreviewPengolahanData")
         self.groupBoxHasil = QtWidgets.QGroupBox(self.framePengolahanData)
         self.groupBoxHasil.setGeometry(QtCore.QRect(740, 40, 571, 531))
         self.groupBoxHasil.setObjectName("groupBoxHasil")
         self.lblPreviewGambarHasil = QtWidgets.QLabel(self.groupBoxHasil)
         self.lblPreviewGambarHasil.setGeometry(QtCore.QRect(0, 50, 561, 451))
+        self.lblPreviewGambarHasil.setAlignment(QtCore.Qt.AlignCenter)
         self.lblPreviewGambarHasil.setObjectName("lblPreviewGambarHasil")
         self.groupBoxMenu = QtWidgets.QGroupBox(self.framePengolahanData)
         self.groupBoxMenu.setGeometry(QtCore.QRect(10, 40, 120, 231))
@@ -110,20 +121,28 @@ class Ui_OCR(object):
         self.groupBoxHasilPengujian = QtWidgets.QGroupBox(self.framePengujian)
         self.groupBoxHasilPengujian.setGeometry(QtCore.QRect(741, 10, 571, 531))
         self.groupBoxHasilPengujian.setObjectName("groupBoxHasilPengujian")
+        self.lblHasilKlasifikasi = QtWidgets.QLabel(self.groupBoxHasilPengujian)
+        self.lblHasilKlasifikasi.setGeometry(QtCore.QRect(0, 50, 561, 451))
+        self.lblHasilKlasifikasi.setAlignment(QtCore.Qt.AlignCenter)
+        self.lblHasilKlasifikasi.setObjectName("lblHasilKlasifikasi")
         self.groupBoxGambar_2 = QtWidgets.QGroupBox(self.framePengujian)
         self.groupBoxGambar_2.setGeometry(QtCore.QRect(150, 10, 571, 531))
         self.groupBoxGambar_2.setObjectName("groupBoxGambar_2")
         self.lblPreviewGambarUji = QtWidgets.QLabel(self.groupBoxGambar_2)
         self.lblPreviewGambarUji.setGeometry(QtCore.QRect(6, 49, 561, 451))
+        self.lblPreviewGambarUji.setAlignment(QtCore.Qt.AlignCenter)
         self.lblPreviewGambarUji.setObjectName("lblPreviewGambarUji")
         self.groupBoxMenu_2 = QtWidgets.QGroupBox(self.framePengujian)
-        self.groupBoxMenu_2.setGeometry(QtCore.QRect(0, 10, 120, 111))
+        self.groupBoxMenu_2.setGeometry(QtCore.QRect(0, 10, 150, 151))
         self.groupBoxMenu_2.setObjectName("groupBoxMenu_2")
         self.btnPilihFileUji = QtWidgets.QPushButton(self.groupBoxMenu_2)
         self.btnPilihFileUji.setGeometry(QtCore.QRect(10, 30, 75, 23))
         self.btnPilihFileUji.setObjectName("btnPilihFileUji")
+        self.btnMSERProses = QtWidgets.QPushButton(self.groupBoxMenu_2)
+        self.btnMSERProses.setGeometry(QtCore.QRect(10, 70, 75, 23))
+        self.btnMSERProses.setObjectName("btnMSERProses")
         self.btnProsesUji = QtWidgets.QPushButton(self.groupBoxMenu_2)
-        self.btnProsesUji.setGeometry(QtCore.QRect(10, 70, 75, 23))
+        self.btnProsesUji.setGeometry(QtCore.QRect(10, 110, 75, 23))
         self.btnProsesUji.setObjectName("btnProsesUji")
         self.Qore.addTab(self.tabPengujian, "")
 
@@ -135,7 +154,8 @@ class Ui_OCR(object):
         _translate = QtCore.QCoreApplication.translate
         OCR.setWindowTitle(_translate("OCR", "Optical Character Recognition (MSER)"))
         self.haloberanda.setText(_translate("OCR", "Halo ini beranda"))
-        self.Nama.setText(_translate("OCR", "Nama Muhammad Iqbal Shorfana"))
+        self.Nama.setText(_translate("OCR", "Nama : Muhammad Iqbal Shorfana"))
+        self.NIM.setText(_translate("OCR", "NIM : 10116465"))
         self.Qore.setTabText(self.Qore.indexOf(self.tabBeranda), _translate("OCR", "Beranda"))
         self.groupBoxGambar.setTitle(_translate("OCR", "Gambar"))
         self.labelGambarPreviewPengolahanData.setText(_translate("OCR", "Preview"))
@@ -152,11 +172,13 @@ class Ui_OCR(object):
         self.btnProsesPelatihan.setText(_translate("OCR", "Proses"))
         self.Qore.setTabText(self.Qore.indexOf(self.tabPelatihan), _translate("OCR", "Pelatihan"))
         self.groupBoxHasilPengujian.setTitle(_translate("OCR", "Hasil"))
+        self.lblHasilKlasifikasi.setText(_translate("OCR", "Preview"))
         self.groupBoxGambar_2.setTitle(_translate("OCR", "Gambar"))
         self.lblPreviewGambarUji.setText(_translate("OCR", "Preview"))
         self.groupBoxMenu_2.setTitle(_translate("OCR", "Menu"))
         self.btnPilihFileUji.setText(_translate("OCR", "Pilih File"))
-        self.btnProsesUji.setText(_translate("OCR", "Proses"))
+        self.btnMSERProses.setText(_translate("OCR", "Proses MSER"))
+        self.btnProsesUji.setText(_translate("OCR", "Pengenalan"))
         self.Qore.setTabText(self.Qore.indexOf(self.tabPengujian), _translate("OCR", "Pengujian"))
 
         self.btnPilihFilePD.clicked.connect(self.clickFile)
@@ -166,6 +188,7 @@ class Ui_OCR(object):
         self.btnEkstaksi.clicked.connect(self.ekstraksi)
         self.btnProsesPelatihan.clicked.connect(self.SVMPelatihan)
         self.btnPilihFileUji.clicked.connect(self.SVMClicked)
+        self.btnMSERProses.clicked.connect(self.MSERProsesTest)
         self.btnProsesUji.clicked.connect(self.SVMPengujian)
 
     
@@ -229,13 +252,29 @@ class Ui_OCR(object):
             self.lblPreviewGambarUji.setPixmap(pixmap)
             self.lblPreviewGambarUji.setAlignment(QtCore.Qt.AlignCenter)   
 
+    def MSERProsesTest(self):
+        image = cv2.imread(filePengujian)
+        grayImage = PreproTest.grayscale(self,image) 
+        mserDetection = PreproTest.mserTextDetectionTest(self,grayImage) 
+
+        cv2.imwrite("pengolahan_data/mserdetect.jpg", mserDetection)
+        pixmap = QtGui.QPixmap("pengolahan_data/mserdetect.jpg")
+        pixmap = pixmap.scaled(self.lblPreviewGambarUji.width(), self.lblPreviewGambarUji.height(), QtCore.Qt.KeepAspectRatio)
+        self.lblPreviewGambarUji.setPixmap(pixmap)
+        self.lblPreviewGambarUji.setAlignment(QtCore.Qt.AlignCenter)  
+
     def SVMPengujian(self):
         image = cv2.imread(filePengujian)
-        grayImage = PreproTest.grayscale(self,image)   
-        mserDetection = PreproTest.MSERProsesTest(self, grayImage)
-
-
-
+        grayImage = PreproTest.grayscale(self,image) 
+        base = os.path.basename(filePengujian)
+        split = os.path.splitext(base) 
+        fileNamaKlasifikasi = os.path.splitext(base)[0]  
+        mserDetection = PreproTest.MSERProsesTest(self, grayImage,fileNamaKlasifikasi)
+        path = 'data_klasifikasi/sertifikat {}.txt'.format(fileNamaKlasifikasi)
+        # Baca data
+        with open(path) as f:
+            hasil_pred = f.read()
+            self.lblHasilKlasifikasi.setText(hasil_pred)
 
 class PreproTrain(QWidget):
     def __init__(self,parent=None):
@@ -246,6 +285,7 @@ class PreproTrain(QWidget):
         gray_img = grayValue.astype(np.uint8)
         return gray_img    
 
+    # fungsi ini digunakan supaya tidak terjadinya bbox atau kontur yang tumpang tindih
     def non_max_suppression_fast(boxes, overlapThresh):
         # Empty array detection
         if len(boxes) == 0:
@@ -291,10 +331,10 @@ class PreproTrain(QWidget):
 
     def mserTextDetection(self,grayImage):
         global txtDelta, txtMinA, txtMaxA, txtMaxV
-        delta, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Delta')
-        MinArea, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Min Aera')
-        MaxArea, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Max Area')
-        MaxVariation, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Max Variation')
+        delta, result = QInputDialog.getText(None, 'Pesan', 'Harap masukan inisialisasi parameter Delta')
+        MinArea, result = QInputDialog.getText(None, 'Pesan', 'Harap masukan inisialisasi parameter Min Aera')
+        MaxArea, result = QInputDialog.getText(None, 'Pesan', 'Harap masukan inisialisasi parameter Max Area')
+        MaxVariation, result = QInputDialog.getText(None, 'Pesan', 'Harap masukan inisialisasi parameter Max Variation')
         txtDelta = int(delta)
         txtMinA = int(MinArea)
         txtMaxA = int(MaxArea)
@@ -315,8 +355,6 @@ class PreproTrain(QWidget):
         return segmen_result_textonly 
 
     def cutSegment(self,grayImage,fileNama):
-        # dir = QFileDialog.getExistingDirectory(self, tr("Open Directory"),"/home", QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks)
-        # print(dir)
         path = 'data_segmentasi/{}'.format(fileNama)
         os.makedirs(path)
         mser = cv2.MSER_create(_delta = txtDelta,_min_area = txtMinA ,_max_area = txtMaxA ,_max_variation = txtMaxV)##0.0689
@@ -346,11 +384,7 @@ class PreproTrain(QWidget):
                         thres1[a][b] = 0
                     else:
                         thres1[a][b] = 255
-            size = (100,100)            
-            thres2 = cv2.resize(thres1,size)              
-            # cv2.imshow('data segmentasi', thres2)
-            # text, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada karakter yang sudah dipotong')
-            cv2.imwrite('data_segmentasi/{}/{}.png'.format(fileNama,iterasi), thres2)
+            cv2.imwrite('data_segmentasi/{}/{}.png'.format(fileNama,iterasi), thres1)
             cv2.rectangle(orig, (startX, startY), (endX, endY), (255, 185, 120), 2) 
             iterasi = iterasi + 1
         self.msgBox = QMessageBox()
@@ -376,14 +410,7 @@ class PreproTrain(QWidget):
         # kemudian lakukan perulangan sebanyak file
         for file in fileList:
             # membuka file gambar
-            # img_file = Image.open(file)
-            gambar = cv2.imread(file)
-
-            # mendapatkan parameter gambar...
-            # width, height = img_file.size
-            # format = img_file.format
-            # mode   = img_file.mode
-            # file_name = img_file.filename             
+            gambar = cv2.imread(file)         
 
             thresholding = PreproTrain.grayscale(self,gambar)
             h,w = np.shape(thresholding)
@@ -396,7 +423,7 @@ class PreproTrain(QWidget):
                         thresholding[x][y] = 0 
             size = (21,21)            
             value = cv2.resize(thresholding,size)               
-            np.savetxt('matriks global thres.txt',np.array(value),fmt="%s")  
+            # np.savetxt('matriks global thres.txt',np.array(value),fmt="%s")  
             # cv2.imwrite('gambar.jpg', value2)         
 
             # mencari nilai centroid
@@ -476,12 +503,28 @@ class PreproTrain(QWidget):
 
             cv2.imshow('Karakter yang akan diekstraksi',gambar)
             # cv2.imwrite('gambar.jpg', value3)   
-            label, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada data ekstraksi')
-            result = [result_zona1, result_zona2, result_zona3, label]
+            label, result = QInputDialog.getText(None, 'Pesan', 'Harap masukan label pada data ekstraksi')
+            
+            if (label == '-'):
+                    print("karakter tidak dimasukan sebagai data ekstraksi karena bentuknya kurang jelas")
+            
+            else :
+                # if label.isEmpty() :
+                #     label, result = QInputDialog.getText(None, 'Peringatan 2x!', 'Harap masukan label pada data ekstraksi')
+                #     result = [result_zona1, result_zona2, result_zona3, label]
+                #     # print(result)
+                #     with open("hasil ekstraksi.csv", 'a') as f:
+                #         writer = csv.writer(f)
+                #         writer.writerow(result)
+                # else:
+                result = [result_zona1, result_zona2, result_zona3, label]
             # print(result)
-            with open("hasil ekstraksi.csv", 'a') as f:
-                writer = csv.writer(f)
-                writer.writerow(result)
+                with open("hasil ekstraksi.csv", 'a') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(result)
+            cv2.destroyAllWindows()         
+
+            
 
         self.msgBox = QMessageBox()
         self.msgBox.setIcon(QMessageBox.Question)
@@ -513,13 +556,6 @@ class SVMTrain(QWidget):
         sc = MinMaxScaler()
         data_x = sc.fit_transform(data_x)
 
-        #Lakukan pemilihan data train dan test
-        # x_train,x_test, y_train, y_test  = train_test_split(data_x, data_y, test_size=0.5, random_state=10)
-        # print("X train",x_train)
-        # print("X test",x_test)
-        # print("Y train",y_train)
-        # print("Y test",y_test)
-
         # Model SVM
         svm_clf = svm.SVC(kernel='rbf')
 
@@ -543,10 +579,9 @@ class SVMTrain(QWidget):
         print('data normalisasi ',data)  
 
         kelas = hasil[0]
-        print(kelas)
+        print(hasil)
         return kelas     
         
-
 
 class PreproTest(QWidget):
     def __init__(self,parent=None):
@@ -632,26 +667,36 @@ class PreproTest(QWidget):
         print(total_jarak_zona3, banyak_titik)
         print("Zona 3 =", result_zona3)
 
-        # cv2.imshow('Karakter yang akan diekstraksi',gambar)
-        # # cv2.imwrite('gambar.jpg', value3)   
-        # label, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada data ekstraksi')
         result = [[result_zona1, result_zona2, result_zona3]]
-        # print(result)
-        # with open("hasil ekstraksi.csv", 'a') as f:
-        #     writer = csv.writer(f)
-        #     writer.writerow(result)
+
         return result  
 
-    def MSERProsesTest(self,grayImage):
+    def mserTextDetectionTest(self,grayImage):
         global txtDelta, txtMinA, txtMaxA, txtMaxV
-        delta, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Delta')
-        MinArea, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Min Aera')
-        MaxArea, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Max Area')
-        MaxVariation, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan inisialisasi parameter Max Variation')
+        delta, result = QInputDialog.getText(None, 'Pesan', 'Harap masukan inisialisasi parameter Delta')
+        MinArea, result = QInputDialog.getText(None, 'Pesan', 'Harap masukan inisialisasi parameter Min Aera')
+        MaxArea, result = QInputDialog.getText(None, 'Pesan', 'Harap masukan inisialisasi parameter Max Area')
+        MaxVariation, result = QInputDialog.getText(None, 'Pesan', 'Harap masukan inisialisasi parameter Max Variation')
         txtDelta = int(delta)
         txtMinA = int(MinArea)
         txtMaxA = int(MaxArea)
         txtMaxV = float(MaxVariation)
+        mser = cv2.MSER_create(_delta = txtDelta,_min_area = txtMinA ,_max_area = txtMaxA ,_max_variation = txtMaxV)##0.0689
+        vis = grayImage.copy() 
+        orig = grayImage.copy()   
+        #detect regions in grayscale image
+        regions, _ = mser.detectRegions(grayImage)
+        hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions]
+        mask = np.zeros((grayImage.shape[0], grayImage.shape[1], 1), dtype=np.uint8)
+        keep = []
+        for contour in hulls:
+            x,y,w,h = cv2.boundingRect(contour)
+            cv2.drawContours(mask, [contour], -1, (255, 255, 255), -1)
+        segmen_result_textonly = cv2.bitwise_and(grayImage, grayImage, mask=mask)
+
+        return segmen_result_textonly     
+
+    def MSERProsesTest(self,grayImage,fileNamaKlasifikasi):
         mser = cv2.MSER_create(_delta = txtDelta,_min_area = txtMinA ,_max_area = txtMaxA ,_max_variation = txtMaxV)##0.0689
         vis = grayImage.copy() 
         orig = grayImage.copy() 
@@ -665,13 +710,16 @@ class PreproTest(QWidget):
             x,y,w,h = cv2.boundingRect(contour)
             keep.append([x, y, x + w, y + h])
             cv2.rectangle(vis, (x, y), (x + w, y + h), (255, 255, 0), 1)  
-
         # Filter for non-repeated rectangular boxes
         keep2 = np.array(keep)
         pick = PreproTrain.non_max_suppression_fast(keep2, 0.5)   
         iterasi = 0
+        benar = 0
+        salah = 0  
+        jml = 0
         for (startX, startY, endX, endY) in pick:
-            thres1 = orig[startY:endY,startX:endX]
+            thres1 = orig[startY:endY,startX:endX]  
+            gambarBaca = thres1
             i, j = np.shape(thres1)
             for a in range(i):
                 for b in range(j):
@@ -682,39 +730,42 @@ class PreproTest(QWidget):
             size = (21,21)            
             value = cv2.resize(thres1,size)  
             data = PreproTest.zoningTest(self,value) 
-            # print("Ini data pertama",data)
-            # data1 = data.reshape(-1,1)
-            # print(data)
             klasifikasi = SVMTrain.testData(self,data)         
-            # cv2.imshow('data segmentasi', thres2)
-            # text, result = QInputDialog.getText(None, 'Peringatan!', 'Harap masukan label pada karakter yang sudah dipotong')
-            # cv2.imwrite('data_segmentasi/{}/{}.png'.format(fileNama,iterasi), thres2)
+            
+            q,r = np.shape(gambarBaca)
+            for m in range(q):
+                for n in range(r):
+                    if (gambarBaca[m][n] == 1):
+                        gambarBaca[m][n] = 255
+                    else:    
+                        gambarBaca[m][n] = 0          
+            cv2.imwrite('data_segmentasi/data_uji/{}.png'.format(iterasi), gambarBaca)
+            g = cv2.imread('data_segmentasi/data_uji/{}.png'.format(iterasi))
+            cv2.imshow('gambar',g) 
             cv2.rectangle(orig, (startX, startY), (endX, endY), (255, 185, 120), 2) 
-            iterasi = iterasi + 1
-            with open("hasil klasifikasi.csv", 'a') as f:
-                writer = csv.writer(f)
-                writer.writerow(klasifikasi)
+            with open("data_klasifikasi/sertifikat {}.txt".format(fileNamaKlasifikasi), 'a') as f:
+                f.write(klasifikasi)
+            
+            iterasi = iterasi + 1   
+            self.msgBox = QMessageBox()
+            self.msgBox.setIcon(QMessageBox.Question)
+            self.msgBox.setText("pada gambar tersebut sistem dapat mengenali huruf {}".format(klasifikasi))
+            self.msgBox.setWindowTitle("Pesan")
+            self.msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            returnValue = self.msgBox.exec() 
+            if returnValue == QMessageBox.Yes:
+                benar = benar + 1
+            else:
+                salah = salah + 1
+            jml = jml + 1
+            cv2.destroyAllWindows() 
+        akurasi = (benar / jml) * 100       
         self.msgBox = QMessageBox()
         self.msgBox.setIcon(QMessageBox.Question)
-        self.msgBox.setText("Klasifikasi selesai")
+        self.msgBox.setText("Klasifikasi selesai dengan akurasi sebesar  {} %".format(akurasi))
         self.msgBox.setWindowTitle("Pesan")
         self.msgBox.setStandardButtons(QMessageBox.Ok)
         self.msgBox.exec()   
-
-# class SVMTest(QWidget):
-#     def __init__(self,parent=None):
-#         super(SVMTrain, self).__init__(parent)
-
-#     def testData(self,data):
-#         global svm_clf, sc
-
-#         data =  sc.transform(data)
-#         hasil = svm_clf.predict(data)   
-
-#         kelas = hasil[0]
-
-#         return kelas         
-
      
 if __name__ == "__main__":
     import sys
