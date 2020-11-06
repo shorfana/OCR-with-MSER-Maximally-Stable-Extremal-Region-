@@ -366,6 +366,7 @@ class PreproTrain(QWidget):
         mask = np.zeros((grayImage.shape[0], grayImage.shape[1], 1), dtype=np.uint8)
         
         keep = []
+
         for contour in hulls:
             x,y,w,h = cv2.boundingRect(contour)
             keep.append([x, y, x + w, y + h])
@@ -373,7 +374,24 @@ class PreproTrain(QWidget):
 
         # Filter for non-repeated rectangular boxes
         keep2 = np.array(keep)
-        pick = PreproTrain.non_max_suppression_fast(keep2, 0.5)   
+        pick = PreproTrain.non_max_suppression_fast(keep2, 0.5) 
+        print(pick)  
+
+        # mendapatkan array urutan
+        urutan = []
+        res_min = 999999
+        for value in pick:
+            res = (value[0] + value[2]) - (value[1] + value[3])
+            urutan.append(res)
+            if res_min >= res:
+                res_min = res
+        print(urutan)
+        
+        for i in range(len(urutan)):
+            urutan[i] = urutan[i] + abs(res_min)
+        # print(urutan)
+        # end mendapatkan array urutan
+
         iterasi = 0
         for (startX, startY, endX, endY) in pick:
             thres1 = orig[startY:endY,startX:endX]
@@ -384,7 +402,7 @@ class PreproTrain(QWidget):
                         thres1[a][b] = 0
                     else:
                         thres1[a][b] = 255
-            cv2.imwrite('data_segmentasi/{}/{}.png'.format(fileNama,iterasi), thres1)
+            cv2.imwrite('data_segmentasi/{}/{}.png'.format(fileNama,str(urutan[iterasi]).zfill(5)),thres1)
             cv2.rectangle(orig, (startX, startY), (endX, endY), (255, 185, 120), 2) 
             iterasi = iterasi + 1
         self.msgBox = QMessageBox()
