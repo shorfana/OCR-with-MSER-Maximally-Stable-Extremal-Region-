@@ -472,10 +472,13 @@ class PreproTrain(QWidget):
             xy = round(xy)
 
             # ================================= ZONING BARU =============================================
-            totalBagiKolom = 3
-            totalBagiBaris = 3
-            jumlahKolom = 7
-            jumlahBaris = 7    
+            totalBagiKolom = 3  # jumlah pembagian kolom
+            totalBagiBaris = 3  # jumlah pembagian baris
+            jumlahKolom = 7     # jumlah kolom setiap bagiannya
+            jumlahBaris = 7     # jumlah baris setiap bagiannya
+
+            # jadi kalau mau dibagi 9, lebar kolom dibagi menjadi 3 dan lebar baris dibagi menjadi 3
+            # dengan ukuran setiap bagiannya 7 x 7
 
             resultZona = []
             numberZona = 1
