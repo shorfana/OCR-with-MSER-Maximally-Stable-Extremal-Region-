@@ -471,53 +471,97 @@ class PreproTrain(QWidget):
             xc = round(xc)
             xy = round(xy)
 
-            # menghitung zona 1
-            total_jarak_zona1 = 0
-            banyak_titik = 0
-            r=0
-            while r < 6:
-                c=0
-                while c < width:
-                    if value[r,c] == 1:
-                        total_jarak_zona1 = total_jarak_zona1 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
-                        banyak_titik = banyak_titik + 1
-                    c=c+1
-                r=r+1
-            result_zona1 = total_jarak_zona1 / banyak_titik
-            print(total_jarak_zona1, banyak_titik)
-            print("Zona 1 =", result_zona1)
+            # ================================= ZONING BARU =============================================
+            totalBagiKolom = 3
+            totalBagiBaris = 3
+            jumlahKolom = 7
+            jumlahBaris = 7    
 
-            # menghitung zona 2
-            total_jarak_zona2 = 0
-            banyak_titik = 0
-            r=6
-            while r < 13:
-                c=0
-                while c < width:
-                    if value[r,c] == 1:
-                        total_jarak_zona2 = total_jarak_zona2 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
-                        banyak_titik = banyak_titik + 1
-                    c=c+1
-                r=r+1
-            result_zona2 = total_jarak_zona2 / banyak_titik
-            print(total_jarak_zona2, banyak_titik)
-            print("Zona 2 =", result_zona2)
+            resultZona = []
+            numberZona = 1
+            
+            row = 0
+            while row < totalBagiBaris :
+                col = 0
+                while col < totalBagiKolom :
+                    startRow = row * jumlahBaris
+                    endRow = startRow + jumlahBaris
+                    startCol = col * jumlahKolom
+                    endCol = startCol + jumlahKolom
+                    
+                    total_jarak_zona1 = 0
+                    banyak_titik = 0
+                    r=startRow
+                    while r < endRow:
+                        c=startCol
+                        while c < endRow:
+                            if value[r,c] == 1:
+                                total_jarak_zona1 = total_jarak_zona1 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
+                                banyak_titik = banyak_titik + 1
+                            c=c+1
+                        r=r+1
 
-            # menghitung zona 3
-            total_jarak_zona3 = 0
-            banyak_titik = 0
-            r=13
-            while r < 20:
-                c=0
-                while c < width:
-                    if value[r,c] == 1:
-                        total_jarak_zona3 = total_jarak_zona3 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
-                        banyak_titik = banyak_titik + 1
-                    c=c+1
-                r=r+1
-            result_zona3 = total_jarak_zona3 / banyak_titik
-            print(total_jarak_zona3, banyak_titik)
-            print("Zona 3 =", result_zona3)
+                    if banyak_titik == 0:
+                        result_zona = 0
+                    else:
+                        result_zona = total_jarak_zona1 / banyak_titik
+                    
+                    resultZona.append(result_zona)
+                    print(total_jarak_zona1, banyak_titik)
+                    print("Zona " , numberZona , " =", result_zona)
+                    numberZona = numberZona + 1
+
+                    col = col + 1
+                row = row + 1 
+            # ================================== END ZONING Baru =====================================
+
+            # # menghitung zona 1
+            # total_jarak_zona1 = 0
+            # banyak_titik = 0
+            # r=0
+            # while r < 6:
+            #     c=0
+            #     while c < width:
+            #         if value[r,c] == 1:
+            #             total_jarak_zona1 = total_jarak_zona1 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
+            #             banyak_titik = banyak_titik + 1
+            #         c=c+1
+            #     r=r+1
+            # result_zona1 = total_jarak_zona1 / banyak_titik
+            # print(total_jarak_zona1, banyak_titik)
+            # print("Zona 1 =", result_zona1)
+
+            # # menghitung zona 2
+            # total_jarak_zona2 = 0
+            # banyak_titik = 0
+            # r=6
+            # while r < 13:
+            #     c=0
+            #     while c < width:
+            #         if value[r,c] == 1:
+            #             total_jarak_zona2 = total_jarak_zona2 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
+            #             banyak_titik = banyak_titik + 1
+            #         c=c+1
+            #     r=r+1
+            # result_zona2 = total_jarak_zona2 / banyak_titik
+            # print(total_jarak_zona2, banyak_titik)
+            # print("Zona 2 =", result_zona2)
+
+            # # menghitung zona 3
+            # total_jarak_zona3 = 0
+            # banyak_titik = 0
+            # r=13
+            # while r < 20:
+            #     c=0
+            #     while c < width:
+            #         if value[r,c] == 1:
+            #             total_jarak_zona3 = total_jarak_zona3 + (math.sqrt((r + xc) ** 2 + (c + xy) ** 2))
+            #             banyak_titik = banyak_titik + 1
+            #         c=c+1
+            #     r=r+1
+            # result_zona3 = total_jarak_zona3 / banyak_titik
+            # print(total_jarak_zona3, banyak_titik)
+            # print("Zona 3 =", result_zona3)
 
             cv2.imshow('Karakter yang akan diekstraksi',gambar)
             # cv2.imwrite('gambar.jpg', value3)   
@@ -535,7 +579,8 @@ class PreproTrain(QWidget):
                 #         writer = csv.writer(f)
                 #         writer.writerow(result)
                 # else:
-                result = [result_zona1, result_zona2, result_zona3, label]
+                resultZona.append(label)
+                result = resultZona
             # print(result)
                 with open("hasil ekstraksi.csv", 'a') as f:
                     writer = csv.writer(f)
